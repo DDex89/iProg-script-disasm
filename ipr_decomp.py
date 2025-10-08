@@ -185,11 +185,13 @@ class IPRDecomp:
                 line = line.next()
 
             for line in check_list:
-                if line.instruction in ('JMP', 'CALL', 'RET', 'SYS', 'DCALL') or \
-                   line.instruction[:3] == "CMP" or \
-                   line.instruction[:1] == "J" or \
-                   line.instruction[:3] == "CPI" or \
-                   (len(line.args) > 1 and line.arg_str(0) == reg):
+                if (
+                    line.instruction in ('JMP', 'CALL', 'RET', 'SYS', 'DCALL')
+                    or line.instruction[:3] == "CMP"
+                    or line.instruction[:1] == "J"
+                    or line.instruction[:3] == "CPI"
+                    or (len(line.args) > 1 and line.arg_str(0) == reg)
+                ):
                     return False
 
         return True

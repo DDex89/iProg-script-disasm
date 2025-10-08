@@ -12,10 +12,11 @@ def decompile_ipr(ipr_filename, extra):
     with open(os.path.splitext(ipr_filename)[0] + '.lst', 'w', encoding='cp1251') as f:
         f.write('\n'.join(ipr.get_lst()))
 
-    decrypted_ipr = ipr.get_ipr()
-    if decrypted_ipr:
-        with open(os.path.splitext(ipr_filename)[0] + '_decrypted.ipr', 'wb') as f:
-            f.write(decrypted_ipr)
+    if ipr.cypher:
+        decrypted_ipr = ipr.get_ipr()
+        if decrypted_ipr:
+            with open(os.path.splitext(ipr_filename)[0] + '_decrypted.ipr', 'wb') as f:
+                f.write(decrypted_ipr)
 
 
 def decompile_cal(cal_filename, extra):

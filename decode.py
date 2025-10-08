@@ -43,18 +43,18 @@ class Decoder:
                     yield sn
 
     @classmethod
-    def decode_ipr_bytecode(cls, data, crc):
+    def decode_ipr_bytecode(cls, data, crc) -> tuple:
         if crc == crc16(data):
             # bytecode не закодирован
             print("## device bytecode is not encoded")
-            return data
+            return data, None, None
 
         for sn in cls.serial_numbers():
             print(f'try sn: {sn:>5} \r', end='')
             r = decode_ipr_v1(data, crc, sn)
             if r is not None:
                 print(f"## device bytecode is encoded (sn: {sn})")
-                return r
+                return r, sn, 'v1'
 
             if cls.brute_quick:
                 if not decode_ipr_v2_quick_check(data, crc, sn, offset=0):
@@ -63,15 +63,15 @@ class Decoder:
             r = decode_ipr_v2(data, crc, sn)
             if r is not None:
                 print(f"## device bytecode is DES encoded (sn: {sn})")
-                return r
+                return r, sn, 'DES'
 
             r = decode_ipr_v2(data, crc, sn, 0xB33506FB)
             if r is not None:
                 print(f"## device bytecode is DES (777) encoded (sn: {sn})")
-                return r
+                return r, sn, 'DES777'
 
         print("## bad bytecode or unknown encoding")
-        return None
+        return None, None, None
 
     @classmethod
     def decode_cal_bytecode(cls, data):
@@ -89,7 +89,7 @@ class Decoder:
         cls.detected_sn = []
         for sn in cls.serial_numbers():
             print(f'try sn: {sn:>5} \r', end='')
-            r = decode_cal(_data, crc, sn, cls.brute_quick)
+            r = decode_cal(_data, crc, sn, quick_check=cls.brute_quick)
             if r is not None:
                 print(f"## calculator bytecode is encoded (sn: {sn})")
                 return r

@@ -97,7 +97,7 @@ class Listing:
     def __init__(self):
         self.glob = []
         self.lines = {}
-        self.mem = None
+        self.mem: STREAM | None = None
         self.dis = None
         self.code_start = None
         self.code_end = None

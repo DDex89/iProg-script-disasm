@@ -399,10 +399,12 @@ class DisassemblerIPR:
 
 class IPR:
     def __init__(self, filename):
-        self.host_listing = None
-        self.device_listing = None
+        self.host_listing = Listing()
+        self.device_listing = Listing()
         self.extra = {}
         self.ui = {}
+        self.sn = None
+        self.cypher = None
 
         self.b_menu_start = 0
         self.b_menu_end = 0
@@ -943,7 +945,7 @@ class IPR:
         code.append('$DEVICE')
         code.append('')
 
-        decrypted_bin = Decoder.decode_ipr_bytecode(device_bytecode.bin, crc)
+        decrypted_bin, self.sn, self.cypher = Decoder.decode_ipr_bytecode(device_bytecode.bin, crc)
         if decrypted_bin is not None:
             device_bytecode.bin = decrypted_bin
             self.device_script = device_bytecode
@@ -962,13 +964,12 @@ class IPR:
             print(f'LEFT {self.stream.pos - self.stream.pos} bytes')
 
         code.append('')
+        code.append('')     # обязательно нужна пустая строка
         self.script_listing = code
 
     def decompile(self, extra=None):
         if extra:
             self.extra = extra
-        self.host_listing = Listing()
-        self.device_listing = Listing()
         try:
             self.decompile_menu()
             self.decompile_toolbar()
