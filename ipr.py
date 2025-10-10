@@ -443,6 +443,39 @@ class IPR:
         lst.extend(self.script_listing)
         return lst
 
+    def get_draft(self):
+        lst = [
+            '',
+            '//  ВНИМАНИЕ. Этот файл не может быть скомпилирован без дополнительной обработки.',
+            '//  Во многих местах синтаксис намеренно не соответствует требованиям компилятора',
+            '//  для обнаружения неверных или неоднозначных мест.',
+            '//  Необходимо проверить:',
+            '//    - глобальные переменные и размеры массивов',
+            '//    - количество локальных переменных',
+            '//    - условия и циклы',
+            '//    - определить границы блоков',
+            '//    - убедитесь, что в функциях не используются переменные с именами R0, R1, ...',
+            '//    - и всё остальное',
+            '//',
+            '//  WARNING. This file cannot be compiled without additional processing.',
+            '//  In many places, the syntax deliberately violates compiler requirements',
+            '//  to detect incorrect or ambiguous code.',
+            '//  The following must be verified:',
+            '//    - global variables and array sizes',
+            '//    - the number of local variables',
+            '//    - conditionals and loops',
+            '//    - code block boundaries must be defined',
+            '//    - make sure that the variables named R0, R1, ... are not used in functions',
+            '//    - and everything else',
+            '',
+        ]
+        lst.extend(self.b_menu_listing)
+        lst.extend(self.b_toolbar_listing)
+        lst.extend(self.b_editor_listing)
+        lst.extend(self.b_windows_listing)
+        lst.extend(self.draft())
+        return lst
+
     def get_ipr(self):
         if self.device_script is None:
             return None
@@ -969,6 +1002,83 @@ class IPR:
         code.append('')
         code.append('')     # обязательно нужна пустая строка
         self.script_listing = code
+
+    @staticmethod
+    def draft_generate(listing: Listing, width=64):
+
+        def draft_line(lin):
+            if lin.name is not None:
+                label = f'{lin.name}:\n'
+            else:
+                label = ''
+            address = f'{lin.ea:06X}'
+            if lin.listing.mem is not None:
+                address += f' [{lin.ea - lin.listing.mem.mem_offset + lin.listing.mem.file_offset:04X}]'
+
+            if lin.listing.mem and lin.listing.mem.is_defined(lin.ea, lin.len):
+                dump = lin.listing.mem.get_block(lin.ea, lin.ea + lin.len)
+                hex_dump = ''.join((f'{b:02X}' for b in dump))
+                if len(hex_dump) > 12:
+                    hex_dump = f'{hex_dump[0:12]}...'
+            else:
+                hex_dump = '??'
+
+            command = ''
+            if None not in (lin.instruction, lin.args):
+                command = lin.listing.dis.instruction_str(lin.instruction, lin.args)
+            s = f'{address} {hex_dump:<16}{command}'
+            s_end = ''
+            comment = '//'
+            if lin.comment is not None:
+                comment = lin.comment
+                if comment[-1:] == '\n':
+                    comment = comment[:-1]
+                    s_end = '\n'
+            else:
+                if 'u' not in lin.flags and lin.instruction and lin.instruction != '.DB':
+                    comment = '// !!! UNDEFINED'
+
+            comment = f'{comment:<{width}}'
+            s = f'{comment}  // {s:<{width}}'
+            if label:
+                s = ' ' * width + '  // ' + label + s
+            s += s_end
+            return s
+
+        lst = listing.glob.copy()
+        if listing.mem is not None:
+            a_next = listing.line(listing.mem.mem_offset)
+
+        for a in sorted(listing.lines):
+            line = listing.line(a)
+            if listing.mem is not None:
+                while a_next.ea < line.ea:
+                    lst.append(draft_line(a_next))
+                    a_next = a_next.next()
+
+            if 'P' in line.flags:
+                lst.append('')  # end of function - add space
+                lst.append('')
+
+            lst.append(draft_line(line))
+            a_next = line.next()
+
+        return lst
+
+    def draft(self):
+        code = list()
+        code.append('')
+        code.append('$HOST')
+        code.append('')
+        code.extend(self.draft_generate(self.host_listing))
+        code.append('')
+        code.append('')
+        code.append('$DEVICE')
+        code.append('')
+        code.extend(self.draft_generate(self.device_listing))
+        code.append('')
+        code.append('')
+        return code
 
     def decompile(self, extra=None):
         if extra:

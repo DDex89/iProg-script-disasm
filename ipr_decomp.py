@@ -535,7 +535,7 @@ def _out(d: IPRDecomp, line: Line):
     """
     IO = var|cons
     """
-    if line.instruction in ['LDB', 'LDW', 'LDD', 'LDMB', 'LDMW', 'LDMD']:
+    if line.instruction in ('LDB', 'LDW', 'LDD', 'LDMB', 'LDMW', 'LDMD'):
         line2 = line.next()
         if line2.instruction == 'OUT' and line2.arg(1) == line.arg(0) and line.arg(0) not in d.local_var:
             a = line2.arg(0)
@@ -543,6 +543,8 @@ def _out(d: IPRDecomp, line: Line):
             io = d.get_io_name(a, True)
             d.set_comment(line, '')
             d.set_comment(line2, f'{io} = {r};\n')
+            if line.instruction[:3] == 'LDM':
+                d.add_global_var(line.arg(1), line.instruction[-1])
             return line2.next()
 
     if line.instruction == 'OUT':
@@ -2102,8 +2104,14 @@ def _(d: IPRDecomp, line: Line):
 
 
 @pat
+def _ret(d: IPRDecomp, line: Line):
+    if line.instruction == 'RET':
+        d.set_comment(line, '')
+
+
+@pat
 def _jmp(d: IPRDecomp, line: Line):
     if line.instruction == 'JMP':
         if line.comment is None:
             # mark the unrecognized command and keep padding
-            d.set_comment(line, '<-- CHECK THIS')
+            d.set_comment(line, '!!! CHECK THIS JMP')
