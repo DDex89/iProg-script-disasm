@@ -912,6 +912,8 @@ class IPR:
             'type': 'host',
             'ui': self.ui,
             'device_labels': [],
+            'vars': [],
+            'device_vars': [],
             'procs': self.extra.get('eph')
         }))
 
@@ -953,6 +955,7 @@ class IPR:
             code.extend(self.device_listing.disassemble(DisassemblerIPR, {
                 'type': 'device',
                 'labels': self.host_listing.dis.presets['device_labels'],
+                'vars': self.host_listing.dis.presets['device_vars'],
                 'procs': self.extra.get('epd')
             }))
         else:

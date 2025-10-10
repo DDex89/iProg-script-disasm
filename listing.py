@@ -167,6 +167,18 @@ class Listing:
     def set_comment(self, ea: int, comment):
         self.line(ea, True).comment = comment
 
+    def set_db(self, ea: int, length=-1):
+        line = self.line(ea)
+        if line.instruction is None or line.len < length:
+            p = self.mem.pos
+            self.mem.pos = ea
+            instruction = '.DB' if length < 0 else '.DB[]'
+            if length <= 0:
+                length = 1
+            x = [(f'0x{self.mem.read_byte():02x}', 'd') for _ in range(length)]
+            self.set_command(ea, length, instruction, x)
+            self.mem.pos = p
+
     def set_string0(self, ea: int):
         p = self.mem.pos
         self.mem.pos = ea
