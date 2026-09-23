@@ -20,6 +20,14 @@
 - после пакетной обработки выводится статистика `OK / Failed / Total`;
 - добавлена стандартная поддержка `-h / --help`.
 
+### Windows launcher
+
+Для удобства в репозитории также есть `decompile_all.bat`.
+
+Он позволяет запускать `iProgDecompiler.py` двойным кликом в Windows и оставляет окно консоли открытым после завершения, чтобы можно было увидеть результаты обработки и возможные ошибки.
+
+BAT-файл является опциональным и не требуется для работы декомпилятора.
+
 ### Использование
 
 Один файл:
@@ -88,6 +96,14 @@ The original decoding and disassembly logic has been preserved, while iProgDecom
 - per-file error handling so one failed file does not stop the batch;
 - OK / Failed / Total processing summary;
 - standard -h / --help support.
+
+### Windows launcher
+
+The repository also includes an optional `decompile_all.bat` helper.
+
+It allows `iProgDecompiler.py` to be launched by double-clicking it in Windows and keeps the console window open after execution so processing results and possible errors can be reviewed.
+
+The BAT file is optional and is not required for the decompiler to work.
 
 ### Usage
 
